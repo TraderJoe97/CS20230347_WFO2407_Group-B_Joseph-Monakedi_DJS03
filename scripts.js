@@ -174,58 +174,45 @@ const setUpEventListeners = () => {
         document.querySelector('[data-search-overlay]').open = false;
     });
 
-document.querySelector('[data-list-button]').addEventListener('click', () => {
-    const fragment = document.createDocumentFragment()
+    // Show more button
+    document.querySelector('[data-list-button]').addEventListener('click', () => {
+        // Add next page of books to list
+        displayBooks(matches.slice(page * BOOKS_PER_PAGE, (page + 1) * BOOKS_PER_PAGE));
+        // Update page number
+        page += 1;
+    });
 
-    for (const { author, id, image, title } of matches.slice(page * BOOKS_PER_PAGE, (page + 1) * BOOKS_PER_PAGE)) {
-        const element = document.createElement('button')
-        element.classList = 'preview'
-        element.setAttribute('data-preview', id)
-    
-        element.innerHTML = `
-            <img
-                class="preview__image"
-                src="${image}"
-            />
-            
-            <div class="preview__info">
-                <h3 class="preview__title">${title}</h3>
-                <div class="preview__author">${authors[author]}</div>
-            </div>
-        `
+    // List items
+    document.querySelector('[data-list-items]').addEventListener('click', (event) => {
+        // Get path array from event
+        const pathArray = Array.from(event.composedPath());
+        // Get id of book that was clicked
+        const active = pathArray.find(node => node?.dataset?.preview)?.dataset?.preview;
 
-        fragment.appendChild(element)
-    }
-
-    document.querySelector('[data-list-items]').appendChild(fragment)
-    page += 1
-})
-
-document.querySelector('[data-list-items]').addEventListener('click', (event) => {
-    const pathArray = Array.from(event.path || event.composedPath())
-    let active = null
-
-    for (const node of pathArray) {
-        if (active) break
-
-        if (node?.dataset?.preview) {
-            let result = null
-    
-            for (const singleBook of books) {
-                if (result) break;
-                if (singleBook.id === node?.dataset?.preview) result = singleBook
-            } 
-        
-            active = result
+        if (active) {
+            // Get book from id
+            const book = books.find(singleBook => singleBook.id === active);
+            if (book) {
+                // Open list overlay
+                document.querySelector('[data-list-active]').open = true;
+                // Set image sources
+                document.querySelector('[data-list-blur]').src = book.image;
+                document.querySelector('[data-list-image]').src = book.image;
+                // Set title and subtitle
+                document.querySelector('[data-list-title]').innerText = book.title;
+                document.querySelector('[data-list-subtitle]').innerText = `${authors[book.author]} (${new Date(book.published).getFullYear()})`;
+                // Set description
+                document.querySelector('[data-list-description]').innerText = book.description;
+            }
         }
-    }
-    
-    if (active) {
-        document.querySelector('[data-list-active]').open = true
-        document.querySelector('[data-list-blur]').src = active.image
-        document.querySelector('[data-list-image]').src = active.image
-        document.querySelector('[data-list-title]').innerText = active.title
-        document.querySelector('[data-list-subtitle]').innerText = `${authors[active.author]} (${new Date(active.published).getFullYear()})`
-        document.querySelector('[data-list-description]').innerText = active.description
-    }
-})
+    });
+};
+
+// Initialize the application
+displayBooks(matches.slice(0, BOOKS_PER_PAGE));
+populateDropdown(genres, '[data-search-genres]', 'All Genres');
+populateDropdown(authors, '[data-search-authors]', 'All Authors');
+initializeTheme();
+setUpEventListeners();
+document.querySelector('[data-list-button]').innerText = `Show more (${books.length - BOOKS_PER_PAGE})`;
+document.querySelector('[data-list-button]').disabled = (matches.length - (page * BOOKS_PER_PAGE)) <= 0;
