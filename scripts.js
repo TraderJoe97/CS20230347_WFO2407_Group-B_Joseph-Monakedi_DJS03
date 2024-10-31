@@ -1,21 +1,26 @@
 import { books, authors, genres, BOOKS_PER_PAGE } from './data.js'
 
 let page = 1;
-let matches = books
+let matches = [...books];
 
-const starting = document.createDocumentFragment()
+/**
+ * Creates a book element as a button with preview information.
+ * 
+ * @param {Object} book - The book object containing book details.
+ * @param {string} book.author - The ID of the book's author.
+ * @param {string} book.id - The unique identifier of the book.
+ * @param {string} book.image - The URL of the book's cover image.
+ * @param {string} book.title - The title of the book.
+ * @returns {HTMLElement} A button element representing the book preview.
+ */
+const createBookElement = (book) => {
+    const { author, id, image, title } = book;
+    const bookElement = document.createElement('button');
+    bookElement.classList = 'preview';
+    bookElement.setAttribute('data-preview', id);
 
-for (const { author, id, image, title } of matches.slice(0, BOOKS_PER_PAGE)) {
-    const element = document.createElement('button')
-    element.classList = 'preview'
-    element.setAttribute('data-preview', id)
-
-    element.innerHTML = `
-        <img
-            class="preview__image"
-            src="${image}"
-        />
-        
+    bookElement.innerHTML = `
+        <img class="preview__image" src="${image}" />
         <div class="preview__info">
             <h3 class="preview__title">${title}</h3>
             <div class="preview__author">${authors[author]}</div>
