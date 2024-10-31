@@ -57,46 +57,64 @@ const populateDropdown = (items, elementSelector, defaultOption) => {
         fragment.appendChild(element);
     }
 
-document.querySelector('[data-search-authors]').appendChild(authorsHtml)
+    document.querySelector(elementSelector).appendChild(fragment);
+};
 
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.querySelector('[data-settings-theme]').value = 'night'
-    document.documentElement.style.setProperty('--color-dark', '255, 255, 255');
-    document.documentElement.style.setProperty('--color-light', '10, 10, 20');
-} else {
-    document.querySelector('[data-settings-theme]').value = 'day'
-    document.documentElement.style.setProperty('--color-dark', '10, 10, 20');
-    document.documentElement.style.setProperty('--color-light', '255, 255, 255');
-}
+const updateTheme = (theme) => {
+    const darkColors = theme === 'night' ? '255, 255, 255' : '10, 10, 20';
+    const lightColors = theme === 'night' ? '10, 10, 20' : '255, 255, 255';
+    document.documentElement.style.setProperty('--color-dark', darkColors);
+    document.documentElement.style.setProperty('--color-light', lightColors);
+};
 
-document.querySelector('[data-list-button]').innerText = `Show more (${books.length - BOOKS_PER_PAGE})`
-document.querySelector('[data-list-button]').disabled = (matches.length - (page * BOOKS_PER_PAGE)) > 0
+const initializeTheme = () => {
+    const theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
+    document.querySelector('[data-settings-theme]').value = theme;
+    updateTheme(theme);
+};
 
-document.querySelector('[data-list-button]').innerHTML = `
-    <span>Show more</span>
-    <span class="list__remaining"> (${(matches.length - (page * BOOKS_PER_PAGE)) > 0 ? (matches.length - (page * BOOKS_PER_PAGE)) : 0})</span>
-`
+/**
+ * Sets up event listeners for various UI components in the application.
+ *
+ * - Handles opening and closing of search and settings overlays.
+ * - Manages form submissions for search and settings, updating results and theme.
+ * - Adds functionality to the "Show More" button for paginated book lists.
+ * - Enables book preview display when a book item is clicked.
+ * @returns {undefined}
+ */
+const setUpEventListeners = () => {
 
-document.querySelector('[data-search-cancel]').addEventListener('click', () => {
-    document.querySelector('[data-search-overlay]').open = false
-})
+    // Search button in header
+    document.querySelector('[data-header-search]').addEventListener('click', () => {
+        // Open search overlay
+        document.querySelector('[data-search-overlay]').open = true;
+        // Focus title input field
+        document.querySelector('[data-search-title]').focus();
+    });
 
-document.querySelector('[data-settings-cancel]').addEventListener('click', () => {
-    document.querySelector('[data-settings-overlay]').open = false
-})
+    // Cancel search button
+    document.querySelector('[data-search-cancel]').addEventListener('click', () => {
+        // Close search overlay
+        document.querySelector('[data-search-overlay]').open = false;
+    });
 
-document.querySelector('[data-header-search]').addEventListener('click', () => {
-    document.querySelector('[data-search-overlay]').open = true 
-    document.querySelector('[data-search-title]').focus()
-})
+    // Settings button in header
+    document.querySelector('[data-header-settings]').addEventListener('click', () => {
+        // Open settings overlay
+        document.querySelector('[data-settings-overlay]').open = true;
+    });
 
-document.querySelector('[data-header-settings]').addEventListener('click', () => {
-    document.querySelector('[data-settings-overlay]').open = true 
-})
+    // Cancel settings button
+    document.querySelector('[data-settings-cancel]').addEventListener('click', () => {
+        // Close settings overlay
+        document.querySelector('[data-settings-overlay]').open = false;
+    });
 
-document.querySelector('[data-list-close]').addEventListener('click', () => {
-    document.querySelector('[data-list-active]').open = false
-})
+    // Close button in list overlay
+    document.querySelector('[data-list-close]').addEventListener('click', () => {
+        // Close list overlay
+        document.querySelector('[data-list-active]').open = false;
+    });
 
 document.querySelector('[data-settings-form]').addEventListener('submit', (event) => {
     event.preventDefault()
