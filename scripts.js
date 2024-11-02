@@ -29,6 +29,13 @@ const createBookElement = (book) => {
     return bookElement;
 };
 
+/**
+ * Appends a list of book preview elements to the list element.
+ *
+ * @param {Object[]} books - The books to display. Each book object should contain the
+ *     following properties: author, id, image, title.
+ * @returns {undefined}
+ */
 const displayBooks = (books) => {
     const fragment = document.createDocumentFragment();
     books.forEach(book => fragment.appendChild(createBookElement(book)));
