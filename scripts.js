@@ -1,36 +1,37 @@
 import { books, authors, genres, BOOKS_PER_PAGE } from './data.js';
+import { BookPreview } from './bookPreview.js';
+
+customElements.define('book-preview', BookPreview);
 
 let page = 1;
 let matches = [...books];
 
 /**
- * Creates a book element as a button with preview information.
+ * Creates a book-preview element as a button with preview information.
  * 
  * @param {Object} book - The book object containing book details.
  * @param {string} book.author - The ID of the book's author.
  * @param {string} book.id - The unique identifier of the book.
  * @param {string} book.image - The URL of the book's cover image.
  * @param {string} book.title - The title of the book.
- * @returns {HTMLElement} A button element representing the book preview.
+ * @returns {HTMLElement} A book-preview element representing the book.
  */
 const createBookElement = (book) => {
-    const { author, id, image, title } = book;
-    const bookElement = document.createElement('button');
-    bookElement.classList = 'preview';
-    bookElement.setAttribute('data-preview', id);
+    const bookElement = document.createElement('book-preview');
+    bookElement.setAttribute('title', book.title);
+    bookElement.setAttribute('author', authors[book.author]);
+    bookElement.setAttribute('image', book.image);
+    bookElement.setAttribute('id', book.id);
 
-    bookElement.innerHTML = `
-        <img class="preview__image" src="${image}" />
-        <div class="preview__info">
-            <h3 class="preview__title">${title}</h3>
-            <div class="preview__author">${authors[author]}</div>
-        </div>
-    `;
+    bookElement.addEventListener('click', () => {
+        displayBookDetails(book);
+    });
+
     return bookElement;
 };
 
 /**
- * Appends a list of book preview elements to the list element.
+ * Appends a list of book-preview elements to the list element.
  *
  * @param {Object[]} books - The books to display. Each book object should contain the
  *     following properties: author, id, image, title.
@@ -41,6 +42,20 @@ const displayBooks = (books) => {
     books.forEach(book => fragment.appendChild(createBookElement(book)));
     document.querySelector('[data-list-items]').appendChild(fragment);
 };
+
+/**
+ * Display book details in the list overlay.
+ * @param {Object} book - The book object to display.
+ */
+const displayBookDetails = (book) => {
+    document.querySelector('[data-list-active]').open = true;
+    document.querySelector('[data-list-blur]').src = book.image;
+    document.querySelector('[data-list-image]').src = book.image;
+    document.querySelector('[data-list-title]').innerText = book.title;
+    document.querySelector('[data-list-subtitle]').innerText = `${authors[book.author]} (${new Date(book.published).getFullYear()})`;
+    document.querySelector('[data-list-description]').innerText = book.description;
+};
+
 
 /**
  * Populate a dropdown element with option elements based on key-value pairs.
@@ -189,30 +204,7 @@ const setUpEventListeners = () => {
         page += 1;
     });
 
-    // List items
-    document.querySelector('[data-list-items]').addEventListener('click', (event) => {
-        // Get path array from event
-        const pathArray = Array.from(event.composedPath());
-        // Get id of book that was clicked
-        const active = pathArray.find(node => node?.dataset?.preview)?.dataset?.preview;
-
-        if (active) {
-            // Get book from id
-            const book = books.find(singleBook => singleBook.id === active);
-            if (book) {
-                // Open list overlay
-                document.querySelector('[data-list-active]').open = true;
-                // Set image sources
-                document.querySelector('[data-list-blur]').src = book.image;
-                document.querySelector('[data-list-image]').src = book.image;
-                // Set title and subtitle
-                document.querySelector('[data-list-title]').innerText = book.title;
-                document.querySelector('[data-list-subtitle]').innerText = `${authors[book.author]} (${new Date(book.published).getFullYear()})`;
-                // Set description
-                document.querySelector('[data-list-description]').innerText = book.description;
-            }
-        }
-    });
+   
 };
 
 // Initialize the application
@@ -223,3 +215,4 @@ initializeTheme();
 setUpEventListeners();
 document.querySelector('[data-list-button]').innerText = `Show more (${books.length - BOOKS_PER_PAGE})`;
 document.querySelector('[data-list-button]').disabled = (matches.length - (page * BOOKS_PER_PAGE)) <= 0;
+
